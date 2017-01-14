@@ -14,5 +14,5 @@ CSC 59967/68 Senior Design
 
 #### Documents
 
-[Specification](https://drive.google.com/file/d/0B2x-3KrueUw1OTBLeldSdWVCQU0/view?usp=sharing)
-[Design](https://drive.google.com/open?id=0B2x-3KrueUw1SDRRSlZOQkNUZ0k)
+* [Specification](https://drive.google.com/file/d/0B2x-3KrueUw1OTBLeldSdWVCQU0/view?usp=sharing)
+* [Design](https://drive.google.com/open?id=0B2x-3KrueUw1SDRRSlZOQkNUZ0k)
