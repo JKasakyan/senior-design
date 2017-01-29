@@ -1,1 +1,2 @@
 twitter-application-only-auth==0.3.3
+TwitterSearch==1.0.1
