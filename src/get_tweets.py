@@ -19,13 +19,14 @@ $ python get_tweets.py
 
 def create_sarcastic_search_order():
     tso = TwitterSearchOrder()
-    tso.set_keywords(['#sarcasm'])
+    tso.set_keywords(['#sarcasm']) # query only tweets containing #sarcasm
     tso.set_language('en')
     tso.set_include_entities(True)
     return tso
 
 def create_non_sarcastic_search_order():
     tso = TwitterSearchOrder()
+    tso.set_keywords(['the', '-#sarcasm']) # must have keyword, so query tweets containing 'the' but NOT '#sarcasm'
     tso.set_language('en')
     tso.set_include_entities(True)
     return tso
@@ -46,8 +47,7 @@ if __name__ == "__main__":
         os.makedirs(LOGGING_DIR)
     logger = logging.getLogger('root')
     FORMAT = "[%(asctime)s - %(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-    logging.basicConfig(filename=LOGGING_DIR + filename + ".log", filemode='a', level=logging.DEBUG, format=FORMAT)
-    logger.setLevel(logging.DEBUG)
+    logging.basicConfig(filename=LOGGING_DIR + filename + ".log", filemode='a', level=logging.INFO, format=FORMAT)
 
     # lists to store tweets
     sarcastic_tweets_list = []
@@ -70,7 +70,7 @@ if __name__ == "__main__":
         for non_sarcastic_tweet in ts.search_tweets_iterable(non_sarcastic_tso):
             non_sarcastic_tweets_list.append(non_sarcastic_tweet)
     except TwitterSearchException as e:
-        logging.debug(str(e))
+        logging.error(str(e))
 
     # save results to json
     if not os.path.exists(SARCASTIC_DIR):
@@ -79,7 +79,7 @@ if __name__ == "__main__":
         os.makedirs(NON_SARCASTIC_DIR)
     with open(SARCASTIC_DIR + filename + ".json", 'w') as f:
         json.dump(sarcastic_tweets_list, f)
-        logging.debug("Saved {} sarcastic tweets at {}".format(len(sarcastic_tweets_list), f.name))
+        logging.info("Saved {} sarcastic tweets at {}".format(len(sarcastic_tweets_list), f.name))
     with open(NON_SARCASTIC_DIR + filename + ".json", 'w') as f:
         json.dump(non_sarcastic_tweets_list, f)
-        logging.debug("Saved {} non sarcastic tweets at {}".format(len(non_sarcastic_tweets_list), f.name))
+        logging.info("Saved {} non sarcastic tweets at {}".format(len(non_sarcastic_tweets_list), f.name))
