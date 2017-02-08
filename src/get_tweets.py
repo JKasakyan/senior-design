@@ -33,9 +33,9 @@ def create_non_sarcastic_search_order():
 
 if __name__ == "__main__":
     # default paths
-    SARCASTIC_DIR = "../json/sarcastic/"    # path to store sarcastic tweet json
-    NON_SARCASTIC_DIR = "../json/non_sarcastic/" # path to store non sarcastic tweet json
-    LOGGING_DIR = "../json/logs/" # path to save log
+    SARCASTIC_DIR = "/Users/James/School/Spring_2017/Senior-Design-CSC-59867/senior-design/json/sarcastic/"    # path to store sarcastic tweet json
+    NON_SARCASTIC_DIR = "/Users/James/School/Spring_2017/Senior-Design-CSC-59867/senior-design/json/non_sarcastic/" # path to store non sarcastic tweet json
+    LOGGING_DIR = "/Users/James/School/Spring_2017/Senior-Design-CSC-59867/senior-design/json/logs/" # path to save log
 
     # start and end date (for file naming/logging)
     end_date = datetime.now()
@@ -66,9 +66,19 @@ if __name__ == "__main__":
             access_token_secret = ACCESS_SECRET
          )
         for sarcastic_tweet in ts.search_tweets_iterable(sarcastic_tso):
-            sarcastic_tweets_list.append(sarcastic_tweet)
+            if not sarcastic_tweet['text'].lower().startswith('rt'):
+                sarcastic_tweets_list.append({
+                    'id': sarcastic_tweet['id'],
+                    'urls': not not sarcastic_tweet['entities']['urls'],
+                    'media': "media" in sarcastic_tweet["entities"],
+                    'text': sarcastic_tweet['text']})
         for non_sarcastic_tweet in ts.search_tweets_iterable(non_sarcastic_tso):
-            non_sarcastic_tweets_list.append(non_sarcastic_tweet)
+            if not non_sarcastic_tweet['text'].lower().startswith('rt'):
+                non_sarcastic_tweets_list.append({
+                    'id': non_sarcastic_tweet['id'],
+                    'urls': not not non_sarcastic_tweet['entities']['urls'],
+                    'media': "media" in non_sarcastic_tweet["entities"],
+                    'text': non_sarcastic_tweet['text']})
     except TwitterSearchException as e:
         logging.error(str(e))
 
@@ -78,8 +88,8 @@ if __name__ == "__main__":
     if not os.path.exists(NON_SARCASTIC_DIR):
         os.makedirs(NON_SARCASTIC_DIR)
     with open(SARCASTIC_DIR + filename + ".json", 'w') as f:
-        json.dump(sarcastic_tweets_list, f)
+        json.dump(sarcastic_tweets_list, f, sort_keys=True, indent=4)
         logging.info("Saved {} sarcastic tweets at {}".format(len(sarcastic_tweets_list), f.name))
     with open(NON_SARCASTIC_DIR + filename + ".json", 'w') as f:
-        json.dump(non_sarcastic_tweets_list, f)
+        json.dump(non_sarcastic_tweets_list, f, sort_keys=True, indent=4)
         logging.info("Saved {} non sarcastic tweets at {}".format(len(non_sarcastic_tweets_list), f.name))
