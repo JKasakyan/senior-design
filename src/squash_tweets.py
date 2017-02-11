@@ -24,20 +24,6 @@ from datetime import datetime
 from json_io import list_to_json, list_from_json
 
 
-def parse_tweet(tweet):
-    """Perform parsing on a tweet. See https://dev.twitter.com/rest/reference/get/search/tweets for structure of tweet object."""
-
-    # Check if already parsed
-    if 'entities' not in tweet:
-        return tweet
-    return {
-        'id': tweet['id'],
-        'urls': not not tweet['entities']['urls'],
-        'media': "media" in tweet["entities"],
-        'text': tweet['text']
-    }
-
-
 if __name__ == "__main__":
     # Setup CLA parser
     parser = argparse.ArgumentParser(description='Squash multiple jsons into one')
