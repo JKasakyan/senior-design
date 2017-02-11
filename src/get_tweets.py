@@ -1,13 +1,4 @@
-import os
-import sys
-import json
-from datetime import datetime, timedelta
-import logging
-
-from TwitterSearch import *
-from login import *
-
-'''
+"""
 get_tweets.py
 
 Retrieve a week's worth of tweets (one batch of #sarcastic, one w/ no specification)
@@ -15,7 +6,18 @@ and save to json.
 
 USAGE:
 $ python get_tweets.py
-'''
+"""
+
+import os
+import sys
+import json
+import argparse
+import logging
+
+from datetime import datetime, timedelta
+
+from TwitterSearch import *
+from login import *
 
 def create_sarcastic_search_order():
     tso = TwitterSearchOrder()
@@ -32,22 +34,27 @@ def create_non_sarcastic_search_order():
     return tso
 
 if __name__ == "__main__":
-    # default paths
-    SARCASTIC_DIR = "/Users/James/School/Spring_2017/Senior-Design-CSC-59867/senior-design/json/sarcastic/"    # path to store sarcastic tweet json
-    NON_SARCASTIC_DIR = "/Users/James/School/Spring_2017/Senior-Design-CSC-59867/senior-design/json/non_sarcastic/" # path to store non sarcastic tweet json
-    LOGGING_DIR = "/Users/James/School/Spring_2017/Senior-Design-CSC-59867/senior-design/json/logs/" # path to save log
+    # Setup CLA parser
+    parser = argparse.ArgumentParser(description='Query twitter API for tweets over last 7 days')
+    parser.add_argument('--sarcastic_path', help='path to directory where results w/ #sarcasm should be saved. Needs trailing "/"')
+    parser.add_argument('--non_sarcastic_path', help='path to directory where results w/o #sarcasm should be saved. Needs trailing "/"')
+    parser.add_argument('--log_path', help='path to save log. Needs trailing "/"')
+
+    # Parse CLAs
+    args = parser.parse_args()
 
     # start and end date (for file naming/logging)
-    end_date = datetime.now()
-    start_date =  end_date - timedelta(days=7)
-    filename = "{}-{}-{}_{}-{}-{}".format(start_date.year, start_date.month, start_date.day, end_date.year, end_date.month, end_date.day)
+    end_date = datetime.strftime(datetime.now(), "%Y-%m-%d")
+    start_date =  datetime.strftime( (datetime.now() - timedelta(days=7)), "%Y-%m-%d")
+    filename = "{}_{}".format(start_date, end_date)
 
     # setup logger
-    if not os.path.exists(LOGGING_DIR):
-        os.makedirs(LOGGING_DIR)
-    logger = logging.getLogger('root')
-    FORMAT = "[%(asctime)s - %(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-    logging.basicConfig(filename=LOGGING_DIR + filename + ".log", filemode='a', level=logging.INFO, format=FORMAT)
+    if args.log_path:
+        if not os.path.exists(args.log_path):
+            os.makedirs(args.log_path)
+        logger = logging.getLogger('root')
+        FORMAT = "[%(asctime)s - %(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+        logging.basicConfig(filename=args.log_path + filename + ".log", filemode='a', level=logging.INFO, format=FORMAT)
 
     # lists to store tweets
     sarcastic_tweets_list = []
@@ -65,31 +72,37 @@ if __name__ == "__main__":
             access_token = ACCESS_TOKEN,
             access_token_secret = ACCESS_SECRET
          )
-        for sarcastic_tweet in ts.search_tweets_iterable(sarcastic_tso):
-            if not sarcastic_tweet['text'].lower().startswith('rt'):
-                sarcastic_tweets_list.append({
-                    'id': sarcastic_tweet['id'],
-                    'urls': not not sarcastic_tweet['entities']['urls'],
-                    'media': "media" in sarcastic_tweet["entities"],
-                    'text': sarcastic_tweet['text']})
-        for non_sarcastic_tweet in ts.search_tweets_iterable(non_sarcastic_tso):
-            if not non_sarcastic_tweet['text'].lower().startswith('rt'):
-                non_sarcastic_tweets_list.append({
-                    'id': non_sarcastic_tweet['id'],
-                    'urls': not not non_sarcastic_tweet['entities']['urls'],
-                    'media': "media" in non_sarcastic_tweet["entities"],
-                    'text': non_sarcastic_tweet['text']})
+        if args.sarcastic_path:
+            for sarcastic_tweet in ts.search_tweets_iterable(sarcastic_tso):
+                if not sarcastic_tweet['text'].lower().startswith('rt'):
+                    sarcastic_tweets_list.append({
+                        'id': sarcastic_tweet['id'],
+                        'urls': not not sarcastic_tweet['entities']['urls'],
+                        'media': "media" in sarcastic_tweet["entities"],
+                        'text': sarcastic_tweet['text']})
+        if args.non_sarcastic_path:
+            for non_sarcastic_tweet in ts.search_tweets_iterable(non_sarcastic_tso):
+                if not non_sarcastic_tweet['text'].lower().startswith('rt'):
+                    non_sarcastic_tweets_list.append({
+                        'id': non_sarcastic_tweet['id'],
+                        'urls': not not non_sarcastic_tweet['entities']['urls'],
+                        'media': "media" in non_sarcastic_tweet["entities"],
+                        'text': non_sarcastic_tweet['text']})
     except TwitterSearchException as e:
         logging.error(str(e))
 
     # save results to json
-    if not os.path.exists(SARCASTIC_DIR):
-        os.makedirs(SARCASTIC_DIR)
-    if not os.path.exists(NON_SARCASTIC_DIR):
-        os.makedirs(NON_SARCASTIC_DIR)
-    with open(SARCASTIC_DIR + filename + ".json", 'w') as f:
-        json.dump(sarcastic_tweets_list, f, sort_keys=True, indent=4)
-        logging.info("Saved {} sarcastic tweets at {}".format(len(sarcastic_tweets_list), f.name))
-    with open(NON_SARCASTIC_DIR + filename + ".json", 'w') as f:
-        json.dump(non_sarcastic_tweets_list, f, sort_keys=True, indent=4)
-        logging.info("Saved {} non sarcastic tweets at {}".format(len(non_sarcastic_tweets_list), f.name))
+    if args.sarcastic_path:
+        if not os.path.exists(args.sarcastic_path):
+            os.makedirs(args.sarcastic_path)
+        with open(args.sarcastic_path + filename + ".json", 'w') as f:
+            json.dump(sarcastic_tweets_list, f, sort_keys=True, indent=4)
+            if args.log_path:
+                logging.info("Saved {} sarcastic tweets at {}".format(len(sarcastic_tweets_list), f.name))
+    if args.non_sarcastic_path:
+        if not os.path.exists(args.non_sarcastic_path):
+            os.makedirs(args.non_sarcastic_path)
+        with open(args.non_sarcastic_path + filename + ".json", 'w') as f:
+            json.dump(non_sarcastic_tweets_list, f, sort_keys=True, indent=4)
+            if args.log_path:
+                logging.info("Saved {} non sarcastic tweets at {}".format(len(non_sarcastic_tweets_list), f.name))
