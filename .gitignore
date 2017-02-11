@@ -41,3 +41,4 @@ ENV/
 
 src/login.py
 data/
+[Ll]ogs/
