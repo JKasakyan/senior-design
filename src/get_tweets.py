@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 
 from TwitterSearch import *
 from login import *
+from json_io import list_to_json
 
 def create_sarcastic_search_order():
     tso = TwitterSearchOrder()
@@ -95,14 +96,12 @@ if __name__ == "__main__":
     if args.sarcastic_path:
         if not os.path.exists(args.sarcastic_path):
             os.makedirs(args.sarcastic_path)
-        with open(args.sarcastic_path + filename + ".json", 'w') as f:
-            json.dump(sarcastic_tweets_list, f, sort_keys=True, indent=4)
-            if args.log_path:
-                logging.info("Saved {} sarcastic tweets at {}".format(len(sarcastic_tweets_list), f.name))
+        list_to_json(sarcastic_tweets_list, args.sarcastic_path + filename + ".json")
+        if args.log_path:
+            logging.info("Saved {} sarcastic tweets at {}".format(len(sarcastic_tweets_list), f.name))
     if args.non_sarcastic_path:
         if not os.path.exists(args.non_sarcastic_path):
             os.makedirs(args.non_sarcastic_path)
-        with open(args.non_sarcastic_path + filename + ".json", 'w') as f:
-            json.dump(non_sarcastic_tweets_list, f, sort_keys=True, indent=4)
-            if args.log_path:
-                logging.info("Saved {} non sarcastic tweets at {}".format(len(non_sarcastic_tweets_list), f.name))
+        list_to_json(non_sarcastic_tweets_list, args.non_sarcastic_path + filename + ".json")
+        if args.log_path:
+            logging.info("Saved {} non sarcastic tweets at {}".format(len(non_sarcastic_tweets_list), f.name))
