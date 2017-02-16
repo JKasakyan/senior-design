@@ -98,10 +98,10 @@ if __name__ == "__main__":
             os.makedirs(args.sarcastic_path)
         list_to_json(sarcastic_tweets_list, args.sarcastic_path + filename + ".json")
         if args.log_path:
-            logging.info("Saved {} sarcastic tweets at {}".format(len(sarcastic_tweets_list), f.name))
+            logging.info("Saved {} sarcastic tweets at {}".format(len(sarcastic_tweets_list), args.sarcastic_path + filename + ".json"))
     if args.non_sarcastic_path:
         if not os.path.exists(args.non_sarcastic_path):
             os.makedirs(args.non_sarcastic_path)
         list_to_json(non_sarcastic_tweets_list, args.non_sarcastic_path + filename + ".json")
         if args.log_path:
-            logging.info("Saved {} non sarcastic tweets at {}".format(len(non_sarcastic_tweets_list), f.name))
+            logging.info("Saved {} non sarcastic tweets at {}".format(len(non_sarcastic_tweets_list), args.non_sarcastic_path + filename + ".json"))
