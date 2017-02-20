@@ -1,11 +1,21 @@
 """
 get_tweets.py
 
-Retrieve a week's worth of tweets (one batch of #sarcastic, one w/ no specification)
-and save to json.
+usage: get_tweets.py [-h] [--sarcastic_path SARCASTIC_PATH]
+                     [--non_sarcastic_path NON_SARCASTIC_PATH]
+                     [--log_path LOG_PATH]
 
-USAGE:
-$ python get_tweets.py
+Query twitter API for tweets over last 7 days
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --sarcastic_path SARCASTIC_PATH
+                        path to directory where results w/ #sarcasm should be
+                        saved. Needs trailing "/"
+  --non_sarcastic_path NON_SARCASTIC_PATH
+                        path to directory where results w/o #sarcasm should be
+                        saved. Needs trailing "/"
+  --log_path LOG_PATH   path to save log. Needs trailing "/"
 """
 
 import os
