@@ -4,7 +4,6 @@ json_io.py
 Functions related to reading/writing/mapping json
 """
 
-
 import json
 import ijson
 from datetime import datetime
@@ -45,6 +44,7 @@ def tweet_map(json_file, tweet_func, save=False):
     returns list where each tweet has tweet_func applied to it
 
     """
+
     mapped_tweets = []
     with open(json_file, 'r') as f:
         # stream through f using ijson.items
@@ -53,3 +53,19 @@ def tweet_map(json_file, tweet_func, save=False):
     if save:
         list_to_json(mapped_tweets, json_file)
     return mapped_tweets
+
+def tweet_iterate(json_file, key=None):
+    """
+    Stream through objects in a json file
+
+    json_file - path to tweet json file
+    key (optional) - single key value of interest (ex: return only "text" field, or only "id" field of each tweet)
+    """
+
+    with open(json_file, 'r') as f:
+        if key:
+            for tweet in ijson.items(f, "item.{}".format(key)):
+                yield tweet
+        else:
+            for tweet in ijson.items(f, "item"):
+                yield tweet
