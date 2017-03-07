@@ -1,3 +1,4 @@
 twitter-application-only-auth==0.3.3
 TwitterSearch==1.0.1
 pandas==0.19.2
+ijson==2.3
