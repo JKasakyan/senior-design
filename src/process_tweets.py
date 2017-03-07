@@ -8,22 +8,19 @@ Template for processing tweets
 import glob
 import argparse
 
-from json_io import list_to_json, list_from_json
+from json_io import list_to_json, list_from_json, tweet_map
 
 
 if __name__ == "__main__":
-    # Setup CLA parser
+    # setup CLA parser
     parser = argparse.ArgumentParser(description='Process tweets')
-    parser.add_argument('path', help='path to directory containing tweet jsons. Needs trailing "/"')
+    parser.add_argument('path', help='path to tweet json to process on. Needs trailing "/"')
     # parse CLAs
     args = parser.parse_args()
-    JSON_DIR = args.path
-
-    # Populate list with paths to jsons
-    json_paths_lst = glob.glob(JSON_DIR + "*-*-*_*-*-*.json")
-
-    # Process tweets
-    # processed_tweets = [ process(tweet) for json_path in json_paths_lst for tweet in list_from_json(json_path)]
-
-    # Save processed tweets to json
-    # list_to_json(processed_tweets, path/to/save/tweets.json)
+    JSON_PATH = args.path
+    # example function to apply to each tweet
+    def tweet_func(tweet):
+        tweet["test"] = True
+        return tweet
+    # process tweets, optionally overwrite with save parameter
+    tweet_map(JSON_PATH, tweet_func, save=False)
