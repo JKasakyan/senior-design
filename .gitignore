@@ -42,3 +42,5 @@ ENV/
 src/login.py
 data/
 [Ll]ogs/
+stanford-ner-2016-10-31/
+
