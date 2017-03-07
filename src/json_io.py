@@ -1,11 +1,12 @@
 """
 json_io.py
 
-Functions related to reading/writing lists to json and json to lists
+Functions related to reading/writing/mapping json
 """
 
 
 import json
+import ijson
 from datetime import datetime
 
 def list_from_json(json_file):
@@ -32,3 +33,23 @@ def merge_json_filenames(json_lst):
     from_date = datetime.strftime(sorted_dates[0], "%Y-%m-%d")
     to_date = datetime.strftime(sorted_dates[-1], "%Y-%m-%d")
     return "{}_{}.json".format(from_date, to_date)
+
+def tweet_map(json_file, tweet_func, save=False):
+    """
+    Apply a function to each tweet in a json file
+
+    json_file - path to tweet json file
+    tweet_func - function that takes in a 'tweet' object, and returns a 'tweet' object
+    save (optional) - overwrite json_file with modified json
+
+    returns list where each tweet has tweet_func applied to it
+
+    """
+    mapped_tweets = []
+    with open(json_file, 'r') as f:
+        # stream through f using ijson.items
+        for tweet in ijson.items(f, "item"):
+            mapped_tweets.append(tweet_func(tweet))
+    if save:
+        list_to_json(mapped_tweets, json_file)
+    return mapped_tweets
