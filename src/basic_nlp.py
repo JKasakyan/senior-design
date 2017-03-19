@@ -1,8 +1,9 @@
 from functools import reduce
 from itertools import zip_longest, filterfalse
+from re import search, findall
 from nltk import ngrams, word_tokenize, pos_tag, FreqDist, ne_chunk, Tree
 from nltk.corpus import opinion_lexicon
-from nltk.corpus import wordnet
+from nltk.corpus import wordnet, cmudict
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize.treebank import TreebankWordTokenizer
@@ -11,7 +12,7 @@ from nltk.tokenize.treebank import TreebankWordTokenizer
 # Ignore twython library missing, we aren't using it's functionality
 # Must use nltk.download() and get the Opinion Lexicon and Vader Lexicon
 
-PUNCTUATION_RE = "[\'\!\"\#\$\%\&\/\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\}\|\~\\u2026]"
+PUNCTUATION_RE = "[\'\!\"\#\$\%\&\/\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\}\|\~\\u2026\\u2018\\u2019]"
 TWEET_LINK_RE = "https://t.co/(\w)+"
 TWEET_HANDLE_RE = "@(\w)+"
 
@@ -21,6 +22,7 @@ class nlp:
     posWords = frozenset(opinion_lexicon.positive())
     suffixes = list(line.rstrip() for line in open("suffixes.txt"))
     vader = SentimentIntensityAnalyzer()
+    d = cmudict.dict()
 
     chunk = lambda self, posTagged: ne_chunk(posTagged, binary=True)
     freq = lambda self, grams: FreqDist(grams)
@@ -112,3 +114,39 @@ class nlp:
         else:
             return "MC"  # Mixed Caps
 
+    def numSyllables(self, word):
+        return [len(list(y for y in x if y[-1].isdigit()))for x in self.d[word.lower()]][0]
+
+    def hasVowel(self, word):
+        for char in word:
+            if char in ['a','e','i','o','u']:
+                return 1
+        return 0
+
+    def hasPunctuation(self, word):
+        return search(PUNCTUATION_RE, word) is not None
+
+    def inDict(self, word):
+        try:
+            self.d[word.lower()]
+            return True
+        except KeyError:
+            return False
+
+    def punctuationFeatures(self, s):
+        """
+        s: input string
+        returns {punctuation_mark: (raw #, % of length of s, % of total # of punctuation marks found in s)}
+
+        example:
+        punctuation_features("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed consequat magna eu facilisis!!?")
+        {'!': (2, 0.0217, 0.4),
+         ',': (1, 0.0109, 0.2),
+         '.': (1, 0.0109, 0.2),
+         '?': (1, 0.0109, 0.2)}
+         """
+
+        punctuation_found_list = findall(PUNCTUATION_RE, s)
+        return {p: (punctuation_found_list.count(p),
+                    round(punctuation_found_list.count(p)/len(s), 4),
+                    round(punctuation_found_list.count(p)/len(punctuation_found_list), 4)) for p in punctuation_found_list}
