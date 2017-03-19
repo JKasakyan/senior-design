@@ -118,7 +118,7 @@ class nlp:
         return [len(list(y for y in x if y[-1].isdigit()))for x in self.d[word.lower()]][0]
 
     def hasVowel(self, word):
-        for char in word:
+        for char in word.lower():
             if char in ['a','e','i','o','u']:
                 return 1
         return 0
