@@ -11,6 +11,10 @@ from nltk.tokenize.treebank import TreebankWordTokenizer
 # Ignore twython library missing, we aren't using it's functionality
 # Must use nltk.download() and get the Opinion Lexicon and Vader Lexicon
 
+PUNCTUATION_RE = "[\'\!\"\#\$\%\&\/\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\}\|\~\\u2026]"
+TWEET_LINK_RE = "https://t.co/(\w)+"
+TWEET_HANDLE_RE = "@(\w)+"
+
 class nlp:
     lemma = WordNetLemmatizer()
     negWords = frozenset(opinion_lexicon.negative())
@@ -32,7 +36,7 @@ class nlp:
 
     def processPosTagsAndLemmatize(self, word, pos):
         return self.lemma.lemmatize(word, self.treebankToWordnetPOS(pos))
-    
+
     def removeNamedEntities(self, chunked, removeNumbers=True):
         def rec(t, r):
             if type(t) == Tree:
@@ -48,10 +52,10 @@ class nlp:
                     r.append(t)
             return r
         return rec(chunked, [])
-    
+
     def sentimentGrams(self, grams):
         return [{"LiuHu": self.sentimentLiuHu(gram), "Vader": self.sentimentVader(gram)} for gram in grams]
-        
+
     def sentimentLiuHu(self, gram):
         posWord = lambda word: word in self.posWords
         negWord = lambda word: word in self.negWords
@@ -74,7 +78,7 @@ class nlp:
 
     def sentimentVader(self, gram):
         return self.vader.polarity_scores(" ".join(gram))
-    
+
     def tokenSuffixes(self, tokens):
         return [max(s2, key=len) for s2 in
                 [s1 for s1 in
@@ -82,7 +86,7 @@ class nlp:
                      [s0 for s0 in self.suffixes if word.endswith(s0)]
                      for word in tokens]
                  if s1]]
-    
+
     def treebankToWordnetPOS(self, treebankPosTag):
         return {'J': wordnet.ADJ,
                 'V': wordnet.VERB,
@@ -97,7 +101,7 @@ class nlp:
                 len(token),
                 token
             )for token in tokensOriginalCase]
-  
+
     def wordCase(self, upper, lower, length, token):
         if upper == 0:
             return "NC"  # No Caps
@@ -107,3 +111,4 @@ class nlp:
             return "FC"  # First Cap
         else:
             return "MC"  # Mixed Caps
+
