@@ -43,13 +43,13 @@ class nlp:
         def rec(t, r):
             if type(t) == Tree:
                 if t.label() == 'NE':
-                    r.append(('[NE]', 'NE'))
+                    r.append(('[NE]', 'NameTOK'))
                 else:
                     for child in t:
                         r.extend(rec(child, []))
             else:
                 if removeNumbers:
-                    r.append(('[CD]', 'CD')) if t[1] == "CD" else r.append(t)
+                    r.append(('[CD]', 'CD')) if t[1] == 'NumTOK' else r.append(t)
                 else:
                     r.append(t)
             return r
@@ -57,6 +57,12 @@ class nlp:
 
     def sentimentGrams(self, grams):
         return [{"LiuHu": self.sentimentLiuHu(gram), "Vader": self.sentimentVader(gram)} for gram in grams]
+
+    def syllableGrams(self, tokens, n):
+        return self.ngrams([self.numSyllables(token) for token in tokens if token in self.d], n)
+
+    def vowelGrams(self, tokens, n):
+        return self.ngrams([self.hasVowel(token) for token in tokens], n)
 
     def sentimentLiuHu(self, gram):
         posWord = lambda word: word in self.posWords
@@ -125,13 +131,6 @@ class nlp:
 
     def hasPunctuation(self, word):
         return search(PUNCTUATION_RE, word) is not None
-
-    def inDict(self, word):
-        try:
-            self.d[word.lower()]
-            return True
-        except KeyError:
-            return False
 
     def punctuationFeatures(self, s):
         """
