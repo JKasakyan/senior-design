@@ -6,7 +6,9 @@ Functions related to reading/writing/mapping json
 
 import json
 import ijson
+from re import sub
 from datetime import datetime
+from basic_nlp import TWEET_LINK_RE, TWEET_HANDLE_RE
 
 def list_from_json(json_file):
     """Return a list corresponding to contents of json file"""
@@ -42,7 +44,6 @@ def tweet_map(json_file, tweet_func, save=False):
     save (optional) - overwrite json_file with modified json
 
     returns list where each tweet has tweet_func applied to it
-
     """
 
     mapped_tweets = []
@@ -69,3 +70,22 @@ def tweet_iterate(json_file, key=None):
         else:
             for tweet in ijson.items(f, "item"):
                 yield tweet
+
+def replaceLinksMentions(tweet):
+    """
+    Take tweet and return tweet with new field "ner_text" where links and handles are replaced by tokens
+    """
+    # replace embedded urls/media with [url], [media], or [url_media]
+    if tweet["media"] or tweet["urls"]:
+        if tweet['media'] and tweet['urls']:
+            replacement_word = 'UrlMediaTOK'
+        elif tweet['media']:
+            replacement_word = "MediaTOK"
+        else:
+            replacement_word = "UrlTok"
+        # replace twitter links with appropriate tag
+        ner_text = sub(TWEET_LINK_RE, replacement_word, ner_text)
+    # replace handles with appropriate tag
+    ner_text = sub(TWEET_HANDLE_RE, "NameTOK", ner_text)
+    tweet["ner_text"] = ner_text
+    return tweet
