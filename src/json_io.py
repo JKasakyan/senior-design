@@ -8,7 +8,9 @@ import json
 import ijson
 from re import sub
 from datetime import datetime
-from basic_nlp import TWEET_LINK_RE, TWEET_HANDLE_RE
+
+TWEET_LINK_RE = "https://t.co/(\w)+"
+TWEET_HANDLE_RE = "@(\w)+"
 
 def list_from_json(json_file):
     """Return a list corresponding to contents of json file"""

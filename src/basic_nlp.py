@@ -13,8 +13,6 @@ from nltk.tokenize.treebank import TreebankWordTokenizer
 # Must use nltk.download() and get the Opinion Lexicon and Vader Lexicon
 
 PUNCTUATION_RE = "[\'\!\"\#\$\%\&\/\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\}\|\~\\u2026\\u2018\\u2019]"
-TWEET_LINK_RE = "https://t.co/(\w)+"
-TWEET_HANDLE_RE = "@(\w)+"
 
 class nlp:
     lemma = WordNetLemmatizer()
