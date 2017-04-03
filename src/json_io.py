@@ -57,6 +57,13 @@ def tweet_map(json_file, tweet_func, save=False):
         list_to_json(mapped_tweets, json_file)
     return mapped_tweets
 
+def tweet_map(tweets, tweet_func):
+    """
+    Apply a function to each tweet in a list of tweets
+    """
+
+    return [tweet_func(tweet) for tweet in tweets]
+
 def tweet_iterate(json_file, key=None):
     """
     Stream through objects in a json file
