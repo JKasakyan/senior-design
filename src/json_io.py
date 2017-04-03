@@ -85,6 +85,7 @@ def replaceLinksMentions(tweet):
     Take tweet and return tweet with new field "ner_text" where links and handles are replaced by tokens
     """
     # replace embedded urls/media with [url], [media], or [url_media]
+    ner_text = tweet["text"]
     if tweet["media"] or tweet["urls"]:
         if tweet['media'] and tweet['urls']:
             replacement_word = 'UrlMediaTOK'
