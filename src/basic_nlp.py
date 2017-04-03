@@ -14,9 +14,7 @@ import re
 # Ignore twython library missing, we aren't using it's functionality
 # Must use nltk.download() and get the Opinion Lexicon and Vader Lexicon
 
-PUNCTUATION_RE = "[\'\!\"\#\$\%\&\/\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\}\|\~\\u2026\\u2018\\u2019]"
-TWEET_LINK_RE = "https://t.co/(\w)+"
-TWEET_HANDLE_RE = "@(\w)+"
+PUNCTUATION_RE = "[\'\!\"\#\$\%\&\/\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\}\|\~]"
 
 lemma = WordNetLemmatizer()
 negWords = frozenset(opinion_lexicon.negative())
@@ -145,20 +143,40 @@ def inDict(word):
 def punctuationFeatures(s):
     """
     s: input string
-    returns {punctuation_mark: (raw #, % of length of s, % of total # of punctuation marks found in s)}
+    returns dictionary of features (puncutation defined by string.punctuation)
+
     example:
     punctuation_features("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed consequat magna eu facilisis!!?")
-    {'!': (2, 0.0217, 0.4),
-     ',': (1, 0.0109, 0.2),
-     '.': (1, 0.0109, 0.2),
-     '?': (1, 0.0109, 0.2)}
+    {
+     TOTAL: 5,
+     TOTAL/LENGTH: 0.0543
+     !_RAW: 2,
+     !_RAW/LEN: 0.0217,
+     !_RAW/TOTAL PUNCT FOUND: 0.4,
+     ...
+     @_RAW: 0.0,
+     @_RAW/LEN: 0.0,
+     @_RAW/TOTAL PUNCT FOUND: 0.0
+    }
      """
 
+    punctuation_dict = {}
     punctuation_found_list = findall(PUNCTUATION_RE, s)
-    punctuation_dict = {p: (punctuation_found_list.count(p),
-                            round(punctuation_found_list.count(p) / len(s), 4),
-                            round(punctuation_found_list.count(p) / len(punctuation_found_list), 4)) for p in
-                        punctuation_found_list}
-    punctuation_dict.update({punct: (0, 0, 0) for punct in punctuation if punct not in punctuation_dict.keys()})
+    string_len = len(s)
+    total_punctuation_found = len(punctuation_found_list)
+    
+    punctuation_dict["TOTAL"] = total_punctuation_found
+    punctuation_dict["TOTAL/LENGTH"] = round(total_punctuation_found / string_len, 4)
+
+    for p in punctuation:
+        if p in punctuation_found_list:
+            n = punctuation_found_list.count(p)
+            punctuation_dict["{}_{}".format(p, "RAW")] = n
+            punctuation_dict["{}_{}".format(p, "RAW/LEN")] = round(n / string_len, 4)
+            punctuation_dict["{}_{}".format(p, "RAW/TOTAL_PUNCT_FOUND")] = round(n / total_punctuation_found, 4)
+        else:
+            punctuation_dict["{}_{}".format(p, "RAW")] = 0.
+            punctuation_dict["{}_{}".format(p, "RAW/LEN")] = 0.
+            punctuation_dict["{}_{}".format(p, "RAW/TOTAL_PUNCT_FOUND")] = 0.
 
     return punctuation_dict
