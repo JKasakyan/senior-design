@@ -1,6 +1,7 @@
 from functools import reduce
 from itertools import zip_longest, filterfalse
 from re import search, findall
+from string import punctuation
 from nltk import ngrams, word_tokenize, pos_tag, FreqDist, ne_chunk, Tree
 from nltk.corpus import opinion_lexicon
 from nltk.corpus import wordnet, cmudict
@@ -12,7 +13,7 @@ from nltk.tokenize.treebank import TreebankWordTokenizer
 # Ignore twython library missing, we aren't using it's functionality
 # Must use nltk.download() and get the Opinion Lexicon and Vader Lexicon
 
-PUNCTUATION_RE = "[\'\!\"\#\$\%\&\/\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\}\|\~\\u2026\\u2018\\u2019]"
+PUNCTUATION_RE = "[\'\!\"\#\$\%\&\/\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\}\|\~]"
 
 class nlp:
     lemma = WordNetLemmatizer()
@@ -144,6 +145,9 @@ class nlp:
          """
 
         punctuation_found_list = findall(PUNCTUATION_RE, s)
-        return {p: (punctuation_found_list.count(p),
+        punctuation_dict = {p: (punctuation_found_list.count(p),
                     round(punctuation_found_list.count(p)/len(s), 4),
                     round(punctuation_found_list.count(p)/len(punctuation_found_list), 4)) for p in punctuation_found_list}
+        punctuation_dict.update({punct: (0,0,0) for punct in punctuation if punct not in punctuation_dict.keys()})
+
+        return punctuation_dict
