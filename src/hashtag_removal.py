@@ -48,9 +48,8 @@ def removeHashtags(tweet):
     tw = {}
     tw["id"] = tweet["id"]
     tw["text"] = " ".join(text)
-    tw["media"] = False
-    tw["test"] = True
-    tw["urls"] = False
+    tw["media"] = tweet["media"]
+    tw["urls"] = tweet["urls"]
     return tw
 
 def processTweets(tweets):
