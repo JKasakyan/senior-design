@@ -3,6 +3,7 @@ from datetime import datetime
 import pickle
 import os
 import json
+import datetime
 
 def createFeatVector(feats):
     dv = DictVectorizer()
@@ -39,9 +40,14 @@ class ml:
         return self.trainVectorizedFeatures(vectorizedFeatures, listOfSarcasmBool)
     
     def trainVectorizedFeatures(self, vectorizedFeatures, listOfSarcasmBool):
-        for classifier in self.classifiers.values():
+        d = {}
+        for name, classifier in self.classifiers.items():
+            s = datetime.datetime.now()
             classifier.fit(vectorizedFeatures.toarray(), listOfSarcasmBool)
-        return self.classifiers
+            e = datetime.datetime.now()
+            t=e-s
+            d[name] = (classifier, t)
+        return d
 
     def accuracySingle(self, dictOfFeatures, sarcasmBool):
         return self.accuracy([dictOfFeatures], [sarcasmBool])
