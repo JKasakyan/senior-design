@@ -1,9 +1,9 @@
 from sklearn.feature_extraction import DictVectorizer
-from datetime import datetime
+import datetime
 import pickle
 import os
 import json
-import datetime
+import re
 
 def createFeatVector(feats):
     dv = DictVectorizer()
@@ -21,13 +21,12 @@ class ml:
     
     def save(self,pickledir='', prependStr=''):
         if not prependStr:
-            prependStr = str(datetime.now())
+            prependStr = str(datetime.datetime.now())
         if not pickledir:
             pickledir = self.pickledir
-        for name, classifier in self.classifiers:
-            name = ' '.join([prependStr, name]) + '.pickle'
-            pickle.dump = pickle.dump(classifier ,open(name, 'wb'))
-            open(pd+"/index.txt", 'a').write('\t'.join(name, type(classifier), classifier.get_params()) + '\n')
+        for name, classifier in self.classifiers.items():
+            name = pickledir + "/" + re.sub(r'[ :<>".*,|\/]+', "", ' '.join([prependStr, name])) + '.pickle'
+            pickle.dump(classifier ,open(name, 'wb'))
         
     def trainListTup(self, listTup):
         (listOfDictFeatures, listOfSarcasmBool) = zip(*listTup)
