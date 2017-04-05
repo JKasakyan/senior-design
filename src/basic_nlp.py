@@ -64,6 +64,12 @@ def removeNamedEntities(chunked, removeNumbers=True):
 def sentimentGrams(grams):
     return [{"LiuHu": sentimentLiuHu(gram), "Vader": sentimentVader(gram)} for gram in grams]
 
+def syllableGrams(tokens, n):
+    return grams([numSyllables(token) for token in tokens if token in d], n)
+
+def vowelGrams(tokens, n):
+    return grams([hasVowel(token) for token in tokens], n)
+
 def sentimentLiuHu(gram):
     posWord = lambda word: word in posWords
     negWord = lambda word: word in negWords
@@ -132,14 +138,6 @@ def hasVowel(word):
 def hasPunctuation(word):
     return search(PUNCTUATION_RE, word) is not None
 
-def inDict(word):
-    try:
-        d[word.lower()]
-        return True
-    except KeyError:
-        return False
-
-
 def punctuationFeatures(s):
     """
     s: input string
@@ -164,7 +162,7 @@ def punctuationFeatures(s):
     punctuation_found_list = findall(PUNCTUATION_RE, s)
     string_len = len(s)
     total_punctuation_found = len(punctuation_found_list)
-    
+
     punctuation_dict["TOTAL"] = total_punctuation_found
     punctuation_dict["TOTAL/LENGTH"] = round(total_punctuation_found / string_len, 4)
 
