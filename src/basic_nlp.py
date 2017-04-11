@@ -31,7 +31,7 @@ pos         = lambda tokens: pos_tag(tokens)
 posTagOnly  = lambda tagged: [tag for word, tag in tagged]
 tokenize    = lambda text: word_tokenize(text)
 wordCases   = lambda ulls: [wordCase(*ull) for ull in ulls]
-tokPosToTok = lambda listTokPos: list(list(zip(*listTokPos))[0])
+tokPosToTok = lambda listTokPos: list(list(zip(*listTokPos)))
 tokNoNE     = lambda chunked, removeNumbers=False: tokPosToTok(removeNamedEntities(chunked, removeNumbers))
 
 
@@ -40,7 +40,8 @@ def tokenizeFindAllRegex(r):
     return lambda s: re.findall(regex, s)
 
 def capLetterFreq(ull):
-    return reduce(lambda i, u: i + u[0], ull, 0) / reduce(lambda i, l: i + l[1], ull, 0)
+    d = reduce(lambda i, l: i + l[1], ull, 0)
+    return reduce(lambda i, u: i + u[0], ull, 0) / (d if d!= 0 else 1)
 
 def processPosTagsAndLemmatize(word, pos):
     return lemma.lemmatize(word, treebankToWordnetPOS(pos))
