@@ -1,5 +1,5 @@
 from sklearn.feature_extraction import DictVectorizer
-import datetime
+from datetime import datetime
 import pickle
 import os
 import json
@@ -65,5 +65,5 @@ class ml:
         scores = {}
         for name, classifier in self.classifiers.items():
             start = datetime.datetime.now()
-            scores[name] = (classifier.score(vectorizedFeatures.toarray(), listOfSarcasmBool), (datetime.datetime.now()-start).total_seconds())            
+            scores[name] = (classifier.score(vectorizedFeatures.toarray(), listOfSarcasmBool), (datetime.datetime.now()-start).total_seconds())
         return scores
