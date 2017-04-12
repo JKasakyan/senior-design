@@ -20,7 +20,6 @@ lib64/
 parts/
 sdist/
 var/
-
 wheels/
 *.egg-info/
 .installed.cfg
@@ -47,3 +46,4 @@ stanford-ner-2016-10-31/
 
 .idea
 src/pickledfeatures/
+src/pickled/

@@ -1,5 +1,5 @@
 from sklearn.feature_extraction import DictVectorizer
-import datetime
+from datetime import datetime
 import pickle
 import os
 import json
@@ -17,7 +17,7 @@ class ml:
         if pickledir:
                 for file in os.listdir(pickledir):
                     if file.endswith(".pickle"):
-                            self.classifiers[file[:-6]] = pickle.load(open(file, 'rb'))
+                            self.classifiers[file[:-6]] = pickle.load(open(pickledir + "/" + file, 'rb'))
     
     def save(self,pickledir='', prependStr=''):
         if not prependStr:
@@ -42,7 +42,7 @@ class ml:
         d = {}
         for name, classifier in self.classifiers.items():
             s = datetime.datetime.now()
-            classifier.fit(vectorizedFeatures.toarray(), listOfSarcasmBool)
+            classifier.fit(vectorizedFeatures, listOfSarcasmBool)
             e = datetime.datetime.now()
             t=e-s
             d[name] = (classifier, t)
@@ -64,5 +64,6 @@ class ml:
     def accuracyVectorizedFeatures(self, vectorizedFeatures, listOfSarcasmBool):
         scores = {}
         for name, classifier in self.classifiers.items():
-            scores[name] = classifier.score(vectorizedFeatures.toarray(), listOfSarcasmBool)
+            start = datetime.datetime.now()
+            scores[name] = (classifier.score(vectorizedFeatures.toarray(), listOfSarcasmBool), (datetime.datetime.now()-start).total_seconds())
         return scores
