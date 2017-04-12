@@ -23,12 +23,16 @@ import sys
 import json
 import argparse
 import logging
+import random
 
 from datetime import datetime, timedelta
 
 from TwitterSearch import *
 from login import *
 from json_io import list_to_json
+
+COMMON_WORDS = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I',
+ 'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at']
 
 def create_sarcastic_search_order():
     tso = TwitterSearchOrder()
@@ -39,7 +43,9 @@ def create_sarcastic_search_order():
 
 def create_non_sarcastic_search_order():
     tso = TwitterSearchOrder()
-    tso.set_keywords(['the', '-#sarcasm']) # must have keyword, so query tweets containing 'the' but NOT '#sarcasm'
+    random_keyword = random.choice(COMMON_WORDS)
+    logging.info("Random keyword: {}".format(random_keyword))
+    tso.set_keywords([random_keyword, '-#sarcasm']) # must have keyword, so query tweets containing random_keyword but NOT '#sarcasm'
     tso.set_language('en')
     tso.set_include_entities(True)
     return tso
@@ -72,8 +78,10 @@ if __name__ == "__main__":
     non_sarcastic_tweets_list = []
 
     # create search orders
-    sarcastic_tso = create_sarcastic_search_order()
-    non_sarcastic_tso = create_non_sarcastic_search_order()
+    if args.sarcastic_path:
+        sarcastic_tso = create_sarcastic_search_order()
+    if args.non_sarcastic_path:
+        non_sarcastic_tso = create_non_sarcastic_search_order()
 
     try:
         # query twitter API and populate tweet lists
