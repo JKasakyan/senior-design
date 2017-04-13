@@ -42,8 +42,6 @@ def reduceFeatures(X_train, X_test, y_train, dv, percent):
     print("\n\nFeatures after reduction: " + str(str(X_train.shape)))
     support = reducer.get_support()
     dvc.restrict(support)
-    print("\n\nMost important features:")
-    print(dvc.get_feature_names()[:500])
     return X_train, X_test, dvc
 
 
@@ -110,7 +108,7 @@ def trainTest(X, y, dv, reduce=0, splits=10, trainsize=0.8, classifiers=DEFAULT_
     startTime = datetime.now()
     for i, (train_index, test_index) in enumerate(sss.split(X, y)):
         startIterationTime = datetime.now()
-        print("Starting iteration %d: " % (i) + str(startIterationTime))
+        print("Starting iteration %d: " % i + str(startIterationTime))
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
 
@@ -162,7 +160,7 @@ def optimize(X, y, dv, reduce=0, splits=10, trainsize=0.8, classifiers=DEFAULT_C
     startTime = datetime.now()
     for i, (train_index, test_index) in enumerate(sss.split(X, y)):
         startIterationTime = datetime.now()
-        print("Starting iteration %d: " % (i) + str(startIterationTime))
+        print("Starting iteration %d: " % i + str(startIterationTime))
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
 
@@ -174,7 +172,6 @@ def optimize(X, y, dv, reduce=0, splits=10, trainsize=0.8, classifiers=DEFAULT_C
         stopIterationTime = datetime.now()
         print("Iteration time:\t%d" % (stopIterationTime - startIterationTime).total_seconds())
         print("Total elapsed time:\t%d" % (stopIterationTime - startTime).total_seconds())
-    return i
 
 
 def processTweets(jsonFileName=JSON_DIR + "sarcastic/unique.json", sarcastic=True, save=True, n=None):
