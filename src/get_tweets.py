@@ -23,16 +23,12 @@ import sys
 import json
 import argparse
 import logging
-import random
 
 from datetime import datetime, timedelta
 
 from TwitterSearch import *
 from login import *
 from json_io import list_to_json
-
-COMMON_WORDS = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I',
- 'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at']
 
 def create_sarcastic_search_order():
     tso = TwitterSearchOrder()
@@ -43,9 +39,7 @@ def create_sarcastic_search_order():
 
 def create_non_sarcastic_search_order():
     tso = TwitterSearchOrder()
-    random_keyword = random.choice(COMMON_WORDS)
-    logging.info("Random keyword: {}".format(random_keyword))
-    tso.set_keywords([random_keyword, '-#sarcasm']) # must have keyword, so query tweets containing random_keyword but NOT '#sarcasm'
+    tso.set_keywords(["-#sarcasm"]) # must have keyword, so query tweets containing common words but NOT '#sarcasm'
     tso.set_language('en')
     tso.set_include_entities(True)
     return tso
