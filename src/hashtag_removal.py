@@ -59,12 +59,7 @@ def removeHashtags(tweet):
             del text[i]
         else:
             i += 1
-    tw = {}
-    tw["id"] = tweet["id"]
-    tw["text"] = " ".join(text)
-    tw["media"] = tweet["media"]
-    tw["urls"] = tweet["urls"]
-    tw["tags"] = tags_list
+    tw = {"id": tweet["id"], "text": " ".join(text), "media": tweet["media"], "urls": tweet["urls"], "tags": tags_list}
     return tw
 
 def replaceHtml(tw):
