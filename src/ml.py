@@ -3,6 +3,7 @@ import warnings
 from copy import deepcopy
 from datetime import datetime
 from itertools import islice
+from os import listdir
 from random import shuffle
 
 import numpy as np
@@ -79,6 +80,15 @@ def pickleClassifiersDV(i, classifiers, dvc, startTime, voting=False):
         pickle.dump((classifiers, dvc),
                     open('pickled/' + sub(FILENAME_REGEX, "", str(startTime)) + " " + str(i) + '.pickle', 'wb'))
 
+def loadClassifiersDV(file=None):
+    if file:
+        classifiers, dvc =  pickle.load(open(file, 'rb'))
+        return [(classifiers, dvc)]
+    cdv = []
+    for file in listdir('pickled'):
+        (c, dv) = pickle.load(open('pickled/'+file, 'rb'))
+        cdv.append((c, dv))
+    return cdv
 
 def vote(i, X_train, y_train, X_test, y_test, dvc, startTime, classifiers, votingWeights):
     vc1 = VotingClassifier(estimators=[(' '.join([str(n), str(type(c))]), c) for n, c in enumerate(classifiers)],
@@ -263,3 +273,21 @@ def vectorize(features, sarcasm, fit=True, save=True, extra=''):
 def vectorizerTransform(dv, features, sarcasm):
     (X, y) = (dv.transform(features), np.array(sarcasm))
     return X, y
+
+
+def predict(listOfString, classifierDV):
+    listOfFeats = flattenFeatureDicts([feature(s) for s in listOfString])
+    r = {}
+    dv = classifierDV[1]
+    X = dv.transform(listOfFeats)
+    for i, c in enumerate(classifierDV[0]):
+        prediction = c.predict(X)
+        
+        invert_op = getattr(c, "predict_proba", None)
+        if callable(invert_op):
+            preProb = c.predict_proba(X)
+            r[(i,str(type(c)))] = {'prediction': prediction, 'prediction_probabilities':preProb}
+        else:
+            r[(i,str(type(c)))] = {'prediction': time}
+    print(r)
+    return r
