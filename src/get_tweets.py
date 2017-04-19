@@ -35,6 +35,7 @@ def create_sarcastic_search_order():
     tso.set_keywords(['#sarcasm']) # query only tweets containing #sarcasm
     tso.set_language('en')
     tso.set_include_entities(True)
+    tso.arguments.update({"tweet_mode": "extended"})
     return tso
 
 def create_non_sarcastic_search_order():
@@ -42,6 +43,7 @@ def create_non_sarcastic_search_order():
     tso.set_keywords(["-#sarcasm"]) # must have keyword, so query tweets containing common words but NOT '#sarcasm'
     tso.set_language('en')
     tso.set_include_entities(True)
+    tso.arguments.update({"tweet_mode": "extended"})
     return tso
 
 if __name__ == "__main__":
@@ -87,20 +89,20 @@ if __name__ == "__main__":
          )
         if args.sarcastic_path:
             for sarcastic_tweet in ts.search_tweets_iterable(sarcastic_tso):
-                if not sarcastic_tweet['text'].lower().startswith('rt'):
+                if not sarcastic_tweet['full_text'].lower().startswith('rt'):
                     sarcastic_tweets_list.append({
                         'id': sarcastic_tweet['id'],
                         'urls': not not sarcastic_tweet['entities']['urls'],
                         'media': "media" in sarcastic_tweet["entities"],
-                        'text': sarcastic_tweet['text']})
+                        'text': sarcastic_tweet['full_text']})
         if args.non_sarcastic_path:
             for non_sarcastic_tweet in ts.search_tweets_iterable(non_sarcastic_tso):
-                if not non_sarcastic_tweet['text'].lower().startswith('rt'):
+                if not non_sarcastic_tweet['full_text'].lower().startswith('rt'):
                     non_sarcastic_tweets_list.append({
                         'id': non_sarcastic_tweet['id'],
                         'urls': not not non_sarcastic_tweet['entities']['urls'],
                         'media': "media" in non_sarcastic_tweet["entities"],
-                        'text': non_sarcastic_tweet['text']})
+                        'text': non_sarcastic_tweet['full_text']})
     except TwitterSearchException as e:
         logging.error(str(e))
 
