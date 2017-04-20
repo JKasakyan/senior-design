@@ -70,13 +70,13 @@ def test(i, X_test, y_test, classifiers):
     return classifiers, r
 
 
-def pickleClassifiersDV(i, classifiers, dvc, startTime, voting=False):
+def pickleClassifiersDV(i, classifiers, dvc, startTime, voting=False, extra=""):
     if voting:
         pickle.dump((classifiers, dvc),
-                    open('pickled/' + sub(FILENAME_REGEX, "", str(startTime)) + " " + str(i) + 'voting.pickle', 'wb'))
+                    open('pickled/' + sub(FILENAME_REGEX, "", str(startTime)) + " " + str(i) + extra + 'voting.pickle', 'wb'))
     else:
         pickle.dump((classifiers, dvc),
-                    open('pickled/' + sub(FILENAME_REGEX, "", str(startTime)) + " " + str(i) + '.pickle', 'wb'))
+                    open('pickled/' + sub(FILENAME_REGEX, "", str(startTime)) + " " + str(i) + extra  + '.pickle', 'wb'))
 
 def loadClassifiersDV(file=None):
     if file:
@@ -102,7 +102,7 @@ def vote(i, X_train, y_train, X_test, y_test, dvc, startTime, classifiers, votin
 
 
 def trainTest(X, y, dv, reduce=0, splits=10, trainsize=0.8, classifiers=DEFAULT_CLASSIFIERS, votingWeights=None,
-              voting=False):
+              voting=False, extra=""):
     sss = StratifiedShuffleSplit(n_splits=splits, train_size=trainsize)
     results = {}
     startTime = datetime.now()
@@ -123,7 +123,7 @@ def trainTest(X, y, dv, reduce=0, splits=10, trainsize=0.8, classifiers=DEFAULT_
         (classifiers, r) = test(i, X_test, y_test, classifiers)
         results.update(r)
 
-        pickleClassifiersDV(i, classifiers, dvc, startTime)
+        pickleClassifiersDV(i, classifiers, dvc, startTime, extra=extra)
 
         if voting:
             vote(i, X_train, y_train, X_test, y_test, dvc, startTime, classifiers, votingWeights)
@@ -174,7 +174,7 @@ def optimize(X, y, dv, reduce=0, splits=10, trainsize=0.8, classifiers=DEFAULT_C
         print("Total elapsed time:\t%d" % (stopIterationTime - startTime).total_seconds())
 
 
-def processTweets(jsonFileName=JSON_DIR + "sarcastic/unique.json", sarcastic=True, save=True, n=None):
+def processTweets(jsonFileName=JSON_DIR + "sarcastic/unique.json", sarcastic=True, save=True, n=None, extra=""):
     if n:
         start = datetime.now()
         tweets = tweet_iterate(jsonFileName, key="text")
@@ -182,7 +182,7 @@ def processTweets(jsonFileName=JSON_DIR + "sarcastic/unique.json", sarcastic=Tru
         feats = [(feature(tweet), sarcastic) for tweet in tweets]
         print((datetime.now() - start).total_seconds())
         if save:
-            saveFeatures(feats, sarcastic)
+            saveFeatures(feats, sarcastic, extra)
         return feats
     else:
         start = datetime.now()
@@ -190,7 +190,7 @@ def processTweets(jsonFileName=JSON_DIR + "sarcastic/unique.json", sarcastic=Tru
         feats = [(feature(tweet), sarcastic) for tweet in tweets]
         print((datetime.now() - start).total_seconds())
         if save:
-            saveFeatures(feats, sarcastic)
+            saveFeatures(feats, sarcastic, extra)
         return feats
 
 
@@ -203,7 +203,7 @@ def saveFeatures(feats, sarcastic, extra=""):
     pickle.dump(feats, open(file, 'wb'))
 
 
-def loadFeatures(sarcastic, extra="", ):
+def loadFeatures(sarcastic, extra=""):
     if sarcastic:
         sarcastic = 'sarcastic'
     else:
