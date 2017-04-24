@@ -15,6 +15,8 @@ TWEET_LINK_RE = "https://t.co/(\w)+"
 TWEET_HANDLE_RE = "@(\w)+"
 HASHTAG_RE = "#(\w)+"
 PUNCTUATION_RE = "[\'\!\"\#\$\%\&\/\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\}\|\~]"
+REDDIT_USERNAMESUBREDDIT_RE = "(\/[ur]\/[a-z-A-Z0-9_-]+)"
+REDDIT_LINK_RE = "(\[?(https?:\/\/(www\.)?)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\]?)"
 
 lemma = WordNetLemmatizer()
 negWords = frozenset(opinion_lexicon.negative())
@@ -288,6 +290,66 @@ def gramFreqFeat(gramFun, tok, minGram, maxGram, name):
 def feature(tweet):
     tweet = repr(tweet)
     tokens = cleanTokens(tweet)
+
+    (tokens, postags) = tokPosTagsNoNE(tokens)
+    (capFreq, allCapsFreq) = casesFeat(tokens)
+
+    puncuationFreq = punctuationFeatures(tweet)
+    (vader, liu) = partialSentimentFeat(tokens)
+    (sufftok, normSuffFreq, norm2SuffFreq) = suffixesFeat(tokens)
+    grm = gramFreqFeat(grams, tokens, 1, 3, 'grm')
+    syl = gramFreqFeat(syllableGrams, tokens, 1, 4, 'syl')
+    vow = gramFreqFeat(vowelGrams, tokens, 1, 4, 'vow')
+    pos = gramFreqFeat(grams, postags, 1, 4, 'pos')
+    suf = gramFreqFeat(grams, sufftok, 1, 4, 'suf')
+    return {**grm,
+            **syl,
+            **vow,
+            **pos,
+            **suf,
+            'puncuationFreq': puncuationFreq,
+            'normSuffFreq': normSuffFreq,
+            'norm2SuffFreq': normSuffFreq,
+            'sentimentVader': vader,
+            'sentimentLiu': liu,
+            'capFreq': capFreq
+            }
+
+def stripReddit(tweet):
+    tweet = sub(REDDIT_USERNAMESUBREDDIT_RE, "NameTOK", tweet)
+    tweet = sub(REDDIT_LINK_RE, "LinkTOK", tweet)
+    return tweet
+
+list_re = [
+    r"(\/sarcasm)",
+    r"(<\/?sarcasm>)",
+    r"(&lt;\/?sarcasm&gt)",
+    r"(#sarcasm)",
+    r"( \/s(?![a-zA-Z0-9]))",
+    r"(:\^(?! ?[D)(\[\]]))"
+          ]
+sarcasm_re = re.compile('|'.join(list_re))
+que = re.compile(r"(\[\?\](?!\())")
+exc = re.compile(r"(\[!\](?!\())")
+period = re.compile(r"(\.~)|(\. ~)")
+
+def stripSarcasm(tweet):
+    tweet = sarcasm_re.sub('', tweet)
+    tweet = que.sub('?', tweet)
+    tweet = exc.sub('!', tweet)
+    tweet = period.sub('.',tweet)
+    return tweet
+
+def cleanTokensReddit(tweet):
+    tweet = stripReddit(tweet)
+    tweet = stripSarcasm(tweet)
+    tweet = unicodeReplacement(tweet)
+    tokens = tokenize(tweet)
+    return tokens
+
+def featureReddit(tweet):
+    tweet = repr(tweet)
+    tokens = cleanTokensReddit(tweet)
 
     (tokens, postags) = tokPosTagsNoNE(tokens)
     (capFreq, allCapsFreq) = casesFeat(tokens)

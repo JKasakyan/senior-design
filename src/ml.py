@@ -11,13 +11,13 @@ from json_io import tweet_iterate
 from nlp import *
 from sklearn.ensemble import VotingClassifier
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.feature_selection import SelectPercentile, f_classif
+from sklearn.feature_selection import SelectPercentile, SelectKBest, f_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, StratifiedShuffleSplit
 
 DEFAULT_CLASSIFIERS = [
-    LogisticRegression(n_jobs=-1),
+    LogisticRegression(n_jobs=-1)
     # LogisticRegression(solver='sag', max_iter=1000, n_jobs=-1, warm_start=True),
     # SGDClassifier(loss='log', penalty='elasticnet', n_jobs=-1),
     # BernoulliNB(alpha=0.2, binarize=0.4),
@@ -73,10 +73,10 @@ def test(i, X_test, y_test, classifiers):
 def pickleClassifiersDV(i, classifiers, dvc, startTime, voting=False, extra=""):
     if voting:
         pickle.dump((classifiers, dvc),
-                    open('pickled/' + sub(FILENAME_REGEX, "", str(startTime)) + " " + str(i) + extra + 'voting.pickle', 'wb'))
+                    open('pickled/' + sub(FILENAME_REGEX, "", str(startTime)) + " " + str(i) + 'voting' + extra + '.pickle', 'wb'))
     else:
         pickle.dump((classifiers, dvc),
-                    open('pickled/' + sub(FILENAME_REGEX, "", str(startTime)) + " " + str(i) + extra  + '.pickle', 'wb'))
+                    open('pickled/' + sub(FILENAME_REGEX, "", str(startTime)) + " " + str(i) + 'voting' + extra + '.pickle', 'wb'))
 
 def loadClassifiersDV(file=None):
     if file:
@@ -100,22 +100,28 @@ def vote(i, X_train, y_train, X_test, y_test, dvc, startTime, classifiers, votin
     print('VC2:%f' % vc2.score(X_test, y_test))
     pickleClassifiersDV(i, [vc1, vc2], dvc, startTime, voting=True)
 
-
-def trainTest(X, y, dv, reduce=0, splits=10, trainsize=0.8, classifiers=DEFAULT_CLASSIFIERS, votingWeights=None,
+def trainTest(X, y, reduce=0, splits=10, trainsize=0.8, testsize=0.2, classifiers=DEFAULT_CLASSIFIERS, votingWeights=None,
               voting=False, extra=""):
-    sss = StratifiedShuffleSplit(n_splits=splits, train_size=trainsize)
+    sss = StratifiedShuffleSplit(n_splits=splits, test_size=testsize, train_size=trainsize)
     results = {}
     startTime = datetime.now()
     for i, (train_index, test_index) in enumerate(sss.split(X, y)):
         startIterationTime = datetime.now()
         print("Starting iteration %d: " % i + str(startIterationTime))
-        X_train, X_test = X[train_index], X[test_index]
-        y_train, y_test = y[train_index], y[test_index]
+        dv = DictVectorizer()
+        X_train = dv.fit_transform([X[i] for i in train_index])
+        y_train = np.array([y[i] for i in train_index])
+        X_test = dv.transform([X[i] for i in test_index])
+        y_test = np.array([y[i] for i in test_index])
 
         if reduce > 0:
-            (X_train, X_test, dvc) = reduceFeatures(X_train, X_test, y_train, dv, percent=reduce)
-        else:
-            dvc = deepcopy(dv)
+            print("\n\nFeatures before reduction: " + str(X_train.shape))
+            reducer = SelectKBest(score_func=f_classif, k=reduce)
+            X_train = reducer.fit_transform(X_train, y_train)
+            X_test = reducer.transform(X_test)
+            print("\n\nFeatures after reduction: " + str(str(X_train.shape)))
+            support = reducer.get_support()
+            dv.restrict(support)
 
         (classifiers, r) = train(i, X_train, y_train, classifiers)
         results.update(r)
@@ -123,10 +129,10 @@ def trainTest(X, y, dv, reduce=0, splits=10, trainsize=0.8, classifiers=DEFAULT_
         (classifiers, r) = test(i, X_test, y_test, classifiers)
         results.update(r)
 
-        pickleClassifiersDV(i, classifiers, dvc, startTime, extra=extra)
+        pickleClassifiersDV(i, classifiers, dv, startTime, extra=extra)
 
         if voting:
-            vote(i, X_train, y_train, X_test, y_test, dvc, startTime, classifiers, votingWeights)
+            vote(i, X_train, y_train, X_test, y_test, dv, startTime, classifiers, votingWeights)
 
         stopIterationTime = datetime.now()
         print("Iteration time:\t%d" % (stopIterationTime - startIterationTime).total_seconds())
@@ -192,6 +198,25 @@ def processTweets(jsonFileName=JSON_DIR + "sarcastic/unique.json", sarcastic=Tru
         if save:
             saveFeatures(feats, sarcastic, extra)
         return feats
+    
+def processReddit(jsonFileName=JSON_DIR + "sarcastic/unique.json", sarcastic=True, save=True, n=None, extra=""):
+    if n:
+        start = datetime.now()
+        tweets = tweet_iterate(jsonFileName, key="text")
+        tweets = islice(tweets, n)
+        feats = [(featureReddit(tweet), sarcastic) for tweet in tweets]
+        print((datetime.now() - start).total_seconds())
+        if save:
+            saveFeatures(feats, sarcastic, extra)
+        return feats
+    else:
+        start = datetime.now()
+        tweets = tweet_iterate(jsonFileName, key="text")
+        feats = [(featureReddit(tweet), sarcastic) for tweet in tweets]
+        print((datetime.now() - start).total_seconds())
+        if save:
+            saveFeatures(feats, sarcastic, extra)
+        return feats
 
 
 def saveFeatures(feats, sarcastic, extra=""):
@@ -199,7 +224,7 @@ def saveFeatures(feats, sarcastic, extra=""):
         sarcastic = 'sarcastic'
     else:
         sarcastic = 'serious'
-    file = PICKLED_FEATS_DIR + extra + sarcastic + 'Feats.pickle'
+    file = PICKLED_FEATS_DIR + sarcastic + 'Feats' + extra + '.pickle'
     pickle.dump(feats, open(file, 'wb'))
 
 
@@ -208,7 +233,7 @@ def loadFeatures(sarcastic, extra=""):
         sarcastic = 'sarcastic'
     else:
         sarcastic = 'serious'
-    file = PICKLED_FEATS_DIR + extra + sarcastic + 'Feats.pickle'
+    file = PICKLED_FEATS_DIR + sarcastic + 'Feats' + extra + '.pickle'
     feats = pickle.load(open(file, 'rb'))
     return feats
 
@@ -238,18 +263,18 @@ def flattenFeatureDicts(features, leaveOut=None):
 
 def saveVectorizer(dv, X=None, y=None, extra=''):
     if X is not None and y is not None:
-        pickle.dump((dv, X, y), open(PICKLED_FEATS_DIR + extra + 'Xydv.pickle', 'wb'))
-        pickle.dump(dv, open(PICKLED_FEATS_DIR + extra + 'dv.pickle', 'wb'))
+        pickle.dump((dv, X, y), open(PICKLED_FEATS_DIR + 'Xydv' + extra  + '.pickle', 'wb'))
+        pickle.dump(dv, open(PICKLED_FEATS_DIR + 'dv' + extra  + '.pickle', 'wb'))
     else:
-        pickle.dump(dv, open(PICKLED_FEATS_DIR + extra + 'dv.pickle', 'wb'))
+        pickle.dump(dv, open(PICKLED_FEATS_DIR + 'dv' + extra  + '.pickle', 'wb'))
 
 
 def loadVectorizer(features=True, extra=''):
     if features:
-        (dv, X, y) = pickle.load(open(PICKLED_FEATS_DIR + extra + 'Xydv.pickle', 'rb'))
+        (dv, X, y) = pickle.load(open(PICKLED_FEATS_DIR + 'Xydv' + extra  + '.pickle', 'rb'))
         return dv, X, y
     else:
-        dv = pickle.load(open(+extra + 'dv.pickle', 'rb'))
+        dv = pickle.load(open(PICKLED_FEATS_DIR + 'dv' + extra  + '.pickle', 'rb'))
         return dv
 
 
