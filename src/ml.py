@@ -88,20 +88,7 @@ def loadClassifiersDV(file=None):
         cdv.append((c, dv))
     return cdv
 
-def vote(i, X_train, y_train, X_test, y_test, dvc, startTime, classifiers, votingWeights):
-    vc1 = VotingClassifier(estimators=[(' '.join([str(n), str(type(c))]), c) for n, c in enumerate(classifiers)],
-                           voting='soft',
-                           weights=votingWeights)
-    vc2 = VotingClassifier(estimators=[(' '.join([str(n), str(type(c))]), c) for n, c in enumerate(classifiers)],
-                           voting='hard')
-    vc1.fit(X_train, y_train)
-    vc2.fit(X_train, y_train)
-    print('VC1:%f' % vc1.score(X_test, y_test))
-    print('VC2:%f' % vc2.score(X_test, y_test))
-    pickleClassifiersDV(i, [vc1, vc2], dvc, startTime, voting=True)
-
-def trainTest(X, y, reduce=0, splits=10, trainsize=0.8, testsize=0.2, classifiers=DEFAULT_CLASSIFIERS, votingWeights=None,
-              voting=False, extra=""):
+def trainTest(X, y, reduce=0, splits=10, trainsize=0.8, testsize=0.2, classifiers=DEFAULT_CLASSIFIERS, extra=""):
     sss = StratifiedShuffleSplit(n_splits=splits, test_size=testsize, train_size=trainsize)
     results = {}
     startTime = datetime.now()
@@ -131,14 +118,19 @@ def trainTest(X, y, reduce=0, splits=10, trainsize=0.8, testsize=0.2, classifier
 
         pickleClassifiersDV(i, classifiers, dv, startTime, extra=extra)
 
-        if voting:
-            vote(i, X_train, y_train, X_test, y_test, dv, startTime, classifiers, votingWeights)
-
         stopIterationTime = datetime.now()
         print("Iteration time:\t%d" % (stopIterationTime - startIterationTime).total_seconds())
         print("Total elapsed time:\t%d" % (stopIterationTime - startTime).total_seconds())
     return results
 
+def testSavedClassifier(X, y, classifier, dv):
+    X_test = dv.transform(X)
+    y_test = np.array(y)
+
+    score = classifier.score(X_test, y_test)
+    results = {'score': score}
+    print("Score:\t%f" % score)
+    return results
 
 def searchForParameters(classifiers, crossValidation, maxIter, X_train, y_train, X_test, y_test):
     print("\n\nStarting to train & Test...")
@@ -236,15 +228,6 @@ def loadFeatures(sarcastic, extra=""):
     file = PICKLED_FEATS_DIR + sarcastic + 'Feats' + extra + '.pickle'
     feats = pickle.load(open(file, 'rb'))
     return feats
-
-
-def shuffleFeatures(sarcasticFeats, seriousFeats):
-    shuffle(seriousFeats)
-    feats = sarcasticFeats + seriousFeats[:len(sarcasticFeats)]
-    shuffle(feats)
-    (features, sarcasm) = list(zip(*feats))
-    return list(features), list(sarcasm)
-
 
 def flattenFeatureDicts(features, leaveOut=None):
     featuresFlattened = []
