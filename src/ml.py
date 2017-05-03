@@ -88,18 +88,14 @@ def loadClassifiersDV(file=None):
         cdv.append((c, dv))
     return cdv
 
-def trainTest(X, y, reduce=0, splits=10, trainsize=0.8, testsize=0.2, classifiers=DEFAULT_CLASSIFIERS, extra=""):
+def trainTest(X, y, classifiers=DEFAULT_CLASSIFIERS, reduce=0, splits=10, trainsize=0.8, testsize=0.2):
     sss = StratifiedShuffleSplit(n_splits=splits, test_size=testsize, train_size=trainsize)
-    results = {}
-    startTime = datetime.now()
+    results = []
     for i, (train_index, test_index) in enumerate(sss.split(X, y)):
-        startIterationTime = datetime.now()
-        print("Starting iteration %d: " % i + str(startIterationTime))
-        dv = DictVectorizer()
-        X_train = dv.fit_transform([X[i] for i in train_index])
-        y_train = np.array([y[i] for i in train_index])
-        X_test = dv.transform([X[i] for i in test_index])
-        y_test = np.array([y[i] for i in test_index])
+        X_train = X[train_index]
+        y_train = y[train_index]
+        X_test = X[test_index]
+        y_test = y[test_index]
 
         if reduce > 0:
             print("\n\nFeatures before reduction: " + str(X_train.shape))
@@ -108,19 +104,14 @@ def trainTest(X, y, reduce=0, splits=10, trainsize=0.8, testsize=0.2, classifier
             X_test = reducer.transform(X_test)
             print("\n\nFeatures after reduction: " + str(str(X_train.shape)))
             support = reducer.get_support()
-            dv.restrict(support)
-
-        (classifiers, r) = train(i, X_train, y_train, classifiers)
-        results.update(r)
-
-        (classifiers, r) = test(i, X_test, y_test, classifiers)
-        results.update(r)
-
-        pickleClassifiersDV(i, classifiers, dv, startTime, extra=extra)
-
-        stopIterationTime = datetime.now()
-        print("Iteration time:\t%d" % (stopIterationTime - startIterationTime).total_seconds())
-        print("Total elapsed time:\t%d" % (stopIterationTime - startTime).total_seconds())
+        
+        for classifier in classifiers:
+            s = datetime.now()
+            classifier.fit(X_train, y_train)
+            trainTime = (datetime.now() - s).total_seconds()
+            score = classifier.score(X_test, y_test)
+            results.append((classifier, traintime, score))
+            print("%d\t%s\tTime: %d\tScore:\t%f" % (n, str(type(classifier)), trainTime, score))
     return results
 
 def testSavedClassifier(X, y, classifier, dv):

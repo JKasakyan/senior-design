@@ -8,6 +8,10 @@ import json
 import ijson
 from re import sub
 from datetime import datetime
+from os import listdir
+from sys import exc_info, stdout
+from random import choice, randrange
+from nlp import *
 
 TWEET_LINK_RE = "https://t.co/(\w)+"
 TWEET_HANDLE_RE = "@(\w)+"
@@ -99,3 +103,73 @@ def replaceLinksMentions(tweet):
     ner_text = sub(TWEET_HANDLE_RE, "NameTOK", ner_text)
     tweet["ner_text"] = ner_text
     return tweet
+
+def fileName(features_path, source, sarcastic, i=None):
+    return features_path + source + ('sarcastic-' if sarcastic else 'serious-') + str(i) + ".json"
+
+def openFiles(features_path, sarcastic, source, n, mode='a'):
+    """
+    takes in a directory path, a sarcastic boolean value, a source type and n
+    Returns n file pointers in the specified (defaul append) mode with a large buffer located in the feature_path directory.
+    feature_path= feats
+    sarcastic = True
+    source = tweet-
+    n=5
+    Will create files like so:
+    feats/tweet-sarcastic-0.json
+    feats/tweet-sarcastic-1.json
+    ...
+    feats/tweet-sarcastic-5.json
+    """
+    return [open(fileName(features_path, source, sarcastic, i), mode, buffering=2**24) for i in range(n)]
+
+def closeFiles(openFiles):
+    """
+    Takes in a list of open file pointers
+    flushes the buffer (done in file.close()) and closes the files.
+    """ 
+    for file in openFiles:
+        file.close()
+    
+def processRandomizeJson(sarcastic, json_path, features_path, source, n, cleanTokens):
+    """
+    takes in a sarcastic boolean, a path to json files, a path to store processed features, a source type an the number of files to create
+    For each json file in the json_path directory it processes the features and saves it randomly to 1 of n files constructed using the openFiles function
+    Periodically prints the file and time it took to process as well as the number of items processed so far.
+    """
+    files = openFiles(features_path, sarcastic, source, n, mode='a')
+    try:
+        totalCount = 0
+        for filename in listdir(json_path):
+            startTime = datetime.now()
+            for line in open(json_path+filename):
+                text = json.loads(line)['text']
+                features = feature(text, cleanTokens)
+                featuresJson = json.dumps(features) + '\n'
+                choice(files).write(featuresJson)
+                totalCount += 1
+            stopTime = datetime.now()
+            print("File %s\ttime:\t%s" % (filename, (stopTime - startTime)))
+            print("Processed %d json lines"%totalCount)
+            stdout.flush()
+        closeFiles(files)
+    except:
+        closeFiles(files)
+        print("Unexpected error:\n")
+        for e in exc_info():
+              print(e)
+
+def loadProcessedFeatures(features_path, source, sarcastic, n=0, feature_filename=None, random=True):
+    if feature_filename:
+        with open(feature_path+feature_filename) as file:
+            for line in file:
+                yield (json.loads(line), sarcastic)
+    elif random:
+        with open(fileName(features_path, source, sarcastic, randrange(n))) as file:
+            for line in file:
+                yield (json.loads(line), sarcastic)
+    else:
+        files = openFiles(features_path, sarcastic, source, n, mode='r')
+        for file in files:
+            for line in file:
+                yield (json.loads(line), sarcastic)
