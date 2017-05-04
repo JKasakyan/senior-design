@@ -269,11 +269,11 @@ def casesFeat(tokens):
     return capFreq, allCapsFreq
 
 
-def cleanTokens(tweet):
+def cleanTokensTwitter(tweet):
     tweet = stripTweet(tweet)
     tweet = unicodeReplacement(tweet)
     tokens = tokenize(tweet)
-    return tokens
+    return tokens, tweet
 
 
 def gramFreqFeat(gramFun, tok, minGram, maxGram, name):
@@ -285,35 +285,6 @@ def gramFreqFeat(gramFun, tok, minGram, maxGram, name):
         dic = keyToStr(freqTable, str(name + str(g)))
         d[n] = dic
     return d
-
-
-def feature(tweet):
-    tweet = repr(tweet)
-    tokens = cleanTokens(tweet)
-
-    (tokens, postags) = tokPosTagsNoNE(tokens)
-    (capFreq, allCapsFreq) = casesFeat(tokens)
-
-    puncuationFreq = punctuationFeatures(tweet)
-    (vader, liu) = partialSentimentFeat(tokens)
-    (sufftok, normSuffFreq, norm2SuffFreq) = suffixesFeat(tokens)
-    grm = gramFreqFeat(grams, tokens, 1, 3, 'grm')
-    syl = gramFreqFeat(syllableGrams, tokens, 1, 4, 'syl')
-    vow = gramFreqFeat(vowelGrams, tokens, 1, 4, 'vow')
-    pos = gramFreqFeat(grams, postags, 1, 4, 'pos')
-    suf = gramFreqFeat(grams, sufftok, 1, 4, 'suf')
-    return {**grm,
-            **syl,
-            **vow,
-            **pos,
-            **suf,
-            'puncuationFreq': puncuationFreq,
-            'normSuffFreq': normSuffFreq,
-            'norm2SuffFreq': normSuffFreq,
-            'sentimentVader': vader,
-            'sentimentLiu': liu,
-            'capFreq': capFreq
-            }
 
 def stripReddit(tweet):
     tweet = sub(REDDIT_USERNAMESUBREDDIT_RE, "NameTOK", tweet)
@@ -345,16 +316,16 @@ def cleanTokensReddit(tweet):
     tweet = stripSarcasm(tweet)
     tweet = unicodeReplacement(tweet)
     tokens = tokenize(tweet)
-    return tokens
+    return tokens, tweet
 
-def featureReddit(tweet):
-    tweet = repr(tweet)
-    tokens = cleanTokensReddit(tweet)
+def feature(text, cleanTokens):
+    text = repr(text)
+    (tokens, text) = cleanTokens(text)
 
     (tokens, postags) = tokPosTagsNoNE(tokens)
     (capFreq, allCapsFreq) = casesFeat(tokens)
 
-    puncuationFreq = punctuationFeatures(tweet)
+    puncuationFreq = punctuationFeatures(text)
     (vader, liu) = partialSentimentFeat(tokens)
     (sufftok, normSuffFreq, norm2SuffFreq) = suffixesFeat(tokens)
     grm = gramFreqFeat(grams, tokens, 1, 3, 'grm')

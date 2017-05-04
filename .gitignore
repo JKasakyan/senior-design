@@ -12,4 +12,5 @@ stanford-ner-2016-10-31/
 
 src/pickledfeatures/
 src/pickled/
+src/features/
 json/logs/
