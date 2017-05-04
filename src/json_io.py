@@ -8,6 +8,7 @@ import json
 import ijson
 from re import sub
 from datetime import datetime
+from os import SEEK_END
 
 TWEET_LINK_RE = "https://t.co/(\w)+"
 TWEET_HANDLE_RE = "@(\w)+"
@@ -18,11 +19,25 @@ def list_from_json(json_file):
     with open(json_file, 'r') as fp:
         return json.load(fp)
 
-def list_to_json(lst, path):
-    """Save a list to a json file at corresponding path."""
+def list_to_json(lst, path, old_format=True):
+    """Save a list of tweets to a json file at corresponding path.
+    old_format (optional, default=true): dump using sorted keys, indenting. Set to false for streaming friendlier format
+    """
 
-    with open(path, 'w') as fp:
-        json.dump(lst, fp, sort_keys=True, indent=4)
+    if old_format:
+        with open(path, 'w') as fp:
+            json.dump(lst, fp, sort_keys=True, indent=4)
+    else:
+        fp = open(path, 'w')
+        fp.write('[\n')
+        for tweet in lst:
+            json.dump({"text": tweet["text"], "id": tweet['id'], "media": tweet["media"], "urls": tweet["urls"]}, fp)
+            fp.write(',\n')
+        fp.close()
+        fp = open(fp.name, 'r+b')
+        fp.seek(-2, SEEK_END)
+        fp.write(bytes("\r\n]", 'utf8'))
+        fp.close()
 
 def merge_json_filenames(json_lst):
     """

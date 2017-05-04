@@ -67,5 +67,5 @@ if __name__ == "__main__":
                 unique_tweets_lst.append(tweet)
                 hash_dict[str(tweet['id'])] = True
         # Save updated unique tweets list and hash dict
-        list_to_json(unique_tweets_lst, top_lvl_path + FN_UNIQUE)
+        list_to_json(unique_tweets_lst, top_lvl_path + FN_UNIQUE, old_format=False)
         list_to_json(hash_dict, top_lvl_path + FN_HASH)
