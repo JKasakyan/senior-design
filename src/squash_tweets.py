@@ -41,7 +41,7 @@ if __name__ == "__main__":
     filename = merge_json_filenames(json_paths_lst)
 
     # Save merged list to json
-    list_to_json(merged_lst, args.path + filename)
+    list_to_json(merged_lst, args.path + filename, old_format=False)
 
     # Delete old files if flag is set
     if args.delete:
