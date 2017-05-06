@@ -11,7 +11,6 @@ from datetime import datetime
 from os import listdir, SEEK_END
 from sys import exc_info, stdout
 from random import choice, randrange
-from nlp import *
 
 TWEET_LINK_RE = "https://t.co/(\w)+"
 TWEET_HANDLE_RE = "@(\w)+"
