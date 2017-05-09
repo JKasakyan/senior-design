@@ -144,7 +144,7 @@ def closeFiles(openFiles):
     """
     for file in openFiles:
         file.close()
-
+        
 def processRandomizeJson(sarcastic, json_path, features_path, source, n, cleanTokens):
     """
     takes in a sarcastic boolean, a path to json files, a path to store processed features, a source type an the number of files to create
