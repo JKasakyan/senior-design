@@ -168,7 +168,7 @@ def processRandomizeJson(sarcastic, json_path, features_path, source, n, cleanTo
         for e in exc_info():
               print(e)
 
-def loadProcessedFeatures(features_path, source, sarcastic, n=0, feature_filename=None, random=True):
+def loadProcessedFeatures(features_path, source, sarcastic, n=0, feature_filename=None, random=True, reduce=0):
     if feature_filename:
         with open(feature_path+feature_filename) as file:
             for line in file:
@@ -178,7 +178,18 @@ def loadProcessedFeatures(features_path, source, sarcastic, n=0, feature_filenam
             for line in file:
                 yield (json.loads(line), sarcastic)
     else:
-        files = openFiles(features_path, sarcastic, source, n, mode='r')
-        for file in files:
-            for line in file:
-                yield (json.loads(line), sarcastic)
+        if reduce != 0:
+            cache = []
+            files = openFiles(features_path, sarcastic, source, n, mode='r')
+            for file in files:
+                for line in file:
+                    cache.append(line)
+                    if len(cache)==reduce:
+                        yield (json.loads(choice(cache)), sarcastic)
+                        cache = []
+        else:
+            files = openFiles(features_path, sarcastic, source, n, mode='r')
+            for file in files:
+                for line in file:
+                    yield (json.loads(line), sarcastic)
+
