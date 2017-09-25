@@ -12,20 +12,20 @@ class DictVectorizerPartial(DictVectorizer):
         self.sort = False
         self.feature_names_ = feature_names
         self.vocabulary_ = vocab
-    
+
     def fit(self, x=[]):
         self.partial_fit(self, x=[], vocab={})
-	
+
     def partial_fit(self, x=[], vocab=None):
         if not vocab:
             vocab = self.vocabulary_
-			
+
         for xp in x:
             for key in xp:
                 vocab.setdefault(key, len(vocab))
         self.vocabulary_ = vocab
         self.feature_names_ = sorted(vocab, key=vocab.get)
-    
+
     def _fit_transform(self, x, y, fit, vocab):
         indptr = [0]
         indices = []
@@ -42,21 +42,23 @@ class DictVectorizerPartial(DictVectorizer):
             indptr.append(len(indices))
         self.vocabulary_ = vocab
         self.feature_names_ = sorted(vocab, key=vocab.get)
-        N = len(vocab)-1
-        M = len(indptr)-1
+        # N = len(vocab)-1
+        # M = len(indptr)-1
         if y:
-            return sp.csr_matrix((X, indices, indptr), dtype=self.dtype, shape=(M, N)), y
+            # return sp.csr_matrix((X, indices, indptr), dtype=self.dtype, shape=(M, N)), y
+            return sp.csr_matrix((X, indices, indptr), dtype=self.dtype), y
         else:
-            return sp.csr_matrix((X, indices, indptr), dtype=self.dtype, shape=(M, N))
-    
-    def transform(self, x, y=None):
-        return self._fit_transform(x, y, fit=False, vocab=self.vocabulary_)
+            # return sp.csr_matrix((X, indices, indptr), dtype=self.dtype, shape=(M, N))
+            return sp.csr_matrix((X, indices, indptr), dtype=self.dtype)
+
+    # def transform(self, x, y=None):
+    #     return self._fit_transform(x, y, fit=False, vocab=self.vocabulary_)
 
     def partial_fit_transform(self, x, y=None, vocab={}):
         if vocab:
             return self._fit_transform(x, y, fit=True, vocab=vocab)
         else:
             return self._fit_transform(x, y, fit=True, vocab=self.vocabulary_)
-        
+
     def fit_transform(self, x, y=None):
         return self._fit_transform(x, y, fit=True, vocab={})
