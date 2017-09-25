@@ -16,11 +16,18 @@ from nlp import feature
 TWEET_LINK_RE = "https://t.co/(\w)+"
 TWEET_HANDLE_RE = "@(\w)+"
 
-def list_from_json(json_file):
+def list_from_json(json_file, old_format=True):
     """Return a list corresponding to contents of json file"""
 
-    with open(json_file, 'r') as fp:
-        return json.load(fp)
+    if old_format:
+        with open(json_file, 'r') as fp:
+            return json.load(fp)
+    else:
+        lst = []
+        with open(json_file, 'r') as fp:
+            for line in fp:
+                lst.append(json.loads(line))
+        return lst
 
 def list_to_json(lst, path, old_format=True):
     """Save a list of tweets to a json file at corresponding path.
@@ -150,6 +157,9 @@ def processRandomizeJson(sarcastic, json_path, features_path, source, n, cleanTo
     try:
         totalCount = 0
         for filename in listdir(json_path):
+            # skip hidden files
+            if filename.startswith('.'):
+                continue
             startTime = datetime.now()
             for line in open(json_path+filename):
                 text = json.loads(line)['text']
@@ -164,6 +174,7 @@ def processRandomizeJson(sarcastic, json_path, features_path, source, n, cleanTo
         closeFiles(files)
     except:
         closeFiles(files)
+        print(text)
         print("Unexpected error:\n")
         for e in exc_info():
               print(e)
@@ -192,4 +203,3 @@ def loadProcessedFeatures(features_path, source, sarcastic, n=0, feature_filenam
             for file in files:
                 for line in file:
                     yield (json.loads(line), sarcastic)
-
