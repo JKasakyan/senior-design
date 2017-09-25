@@ -272,6 +272,7 @@ def casesFeat(tokens):
 def cleanTokensTwitter(tweet):
     tweet = stripTweet(tweet)
     tweet = unicodeReplacement(tweet)
+    tweet = tweet.rstrip()
     tokens = tokenize(tweet)
     return tokens, tweet
 
@@ -319,7 +320,7 @@ def cleanTokensReddit(tweet):
     return tokens, tweet
 
 def feature(text, cleanTokens):
-    text = repr(text)
+    # text = repr(text)
     (tokens, text) = cleanTokens(text)
 
     (tokens, postags) = tokPosTagsNoNE(tokens)
