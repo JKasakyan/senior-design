@@ -165,7 +165,7 @@ if __name__ == "__main__":
             Serious, classified sarcastic: {}
             '''.format(
             name,
-            results[name]['score']
+            results[name]['score'],
             results[name]['trueSar'],
             results[name]['falseSer'],
             results[name]['trueSer'],
