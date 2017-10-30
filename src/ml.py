@@ -327,13 +327,12 @@ def predictMultiple(tweets, classifiers, names, dvps, y, graph=False):
     for classifier, name, dvp in zip(classifiers, names, dvps):
         results[name] = {}
         pre = predict(tweets, classifier, dvp, cleanTokensTwitter)
-        if y:
-            tn, fp, fn, tp = confusion_matrix(y, pre['prediction']).ravel()
-            results[name]['trueSar'] = tp
-            results[name]['falseSar'] = fp
-            results[name]['trueSer'] = tn
-            results[name]['falseSer'] = fn
-            results[name]['score'] = (tp + tn) / len(y)
+        tn, fp, fn, tp = confusion_matrix(y, pre['prediction']).ravel()
+        results[name]['trueSar'] = tp
+        results[name]['falseSar'] = fp
+        results[name]['trueSer'] = tn
+        results[name]['falseSer'] = fn
+        results[name]['score'] = (tp + tn) / len(y)
 
     if graph:
         import plotly.offline as py

@@ -29,6 +29,7 @@ import glob
 import pickle
 
 from datetime import datetime, timedelta
+import numpy as np
 
 from TwitterSearch import *
 from login import *
@@ -118,12 +119,12 @@ if __name__ == "__main__":
     logging.info("Queried {} serious tweets".format(len(serious_tweets)))
     # Filter for only unique new tweets
     paths, tweets, X, y =  [], [], [], []
-    if args.sarcastic_path:
-        paths.append(args.sarcastic_path)
-        tweets.append(sarcastic_tweets)
     if args.serious_path:
         paths.append(args.serious_path)
         tweets.append(serious_tweets)
+    if args.sarcastic_path:
+        paths.append(args.sarcastic_path)
+        tweets.append(sarcastic_tweets)
     for path, ts in zip(paths, tweets):
         tweet_dataset = list_from_json(path + FN_UNIQUE, old_format=False)
         original_length_tweet_dataset = len(tweet_dataset)
@@ -146,6 +147,18 @@ if __name__ == "__main__":
     # load best classifiers and predict on new tweets
     best_classifiers = pickle.load(open(BEST_TRAINED_CLASSIFIERS, 'rb'))
     names = ["NB_unbal", "NB_bal", "LOG_unbal", "LOG_bal"]
+    # test on balanced dataset if queried both sarcastic and serious tweets
+    if args.serious_path and args.sarcastic_path:
+        y = np.array(y)
+        if len(y[y==True] < len(y[y==False])):
+            # less unique sarcastic tweets than serious
+            X = np.append(X[:len(y[y==True])], X[len(y[y==False]):])
+            y = np.append(y[:len(y[y==True])], y[len(y[y==False]):])
+        else:
+            # more unique sarcastic tweets than serious
+            X = np.append(X[:len(y[y==False])], X[len(y[y==True]):])
+            y = np.append(y[:len(y[y==False])], y[len(y[y==True]):])
+    logging.info("Testing on {} tweets".format(len(y)))
     results = predictMultiple(
         X,
         [best_classifiers[name]['classifier'] for name in names],
