@@ -150,14 +150,17 @@ if __name__ == "__main__":
     # test on balanced dataset if queried both sarcastic and serious tweets
     if args.serious_path and args.sarcastic_path:
         y = np.array(y)
-        if len(y[y==True] < len(y[y==False])):
-            # less unique sarcastic tweets than serious
-            X = np.append(X[:len(y[y==True])], X[len(y[y==False]):])
-            y = np.append(y[:len(y[y==True])], y[len(y[y==False]):])
+        sarCount = len(y[y==True])
+        serCount = len(y[y==False])
+        # The first serCount elements of X and y are serious. Rest sarcastic.
+        if sarCount < serCount:
+            # Take sarCount serious tweets and all sarcastic tweets
+            X = np.append(X[:sarCount], X[serCount]:])
+            y = np.append(y[:sarCount], y[serCount):])
         else:
-            # more unique sarcastic tweets than serious
-            X = np.append(X[:len(y[y==False])], X[len(y[y==True]):])
-            y = np.append(y[:len(y[y==False])], y[len(y[y==True]):])
+            # Take all serious tweets and serCount sarcastic tweets
+            X = np.append(X[:serCount], X[serCount:2*serCount])
+            y = np.append(y[:serCount], y[serCount:2*serCount])
     logging.info("Testing on {} tweets".format(len(y)))
     results = predictMultiple(
         X,
