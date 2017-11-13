@@ -155,8 +155,8 @@ if __name__ == "__main__":
         # The first serCount elements of X and y are serious. Rest sarcastic.
         if sarCount < serCount:
             # Take sarCount serious tweets and all sarcastic tweets
-            X = np.append(X[:sarCount], X[serCount]:])
-            y = np.append(y[:sarCount], y[serCount):])
+            X = np.append(X[:sarCount], X[serCount:])
+            y = np.append(y[:sarCount], y[serCount:])
         else:
             # Take all serious tweets and serCount sarcastic tweets
             X = np.append(X[:serCount], X[serCount:2*serCount])
